@@ -12,20 +12,21 @@ const (
 	EndpointStatus_INACTIVE EndpointStatus = "INACTIVE"
 )
 
+// EndpointRepository is interface for CRUD operations related to Endpoint
 type EndpointRepository interface {
-	GetAll() ([]*endpoint, error)
-	Create(e *endpoint) error
-	Update(e *endpoint) error
+	GetAll() ([]*Endpoint, error)
+	Create(e *Endpoint) error
+	Update(e *Endpoint) error
 }
 
-type endpoint struct {
+type Endpoint struct {
 	id     uint
 	domain string
 	path   string
 	status EndpointStatus
 }
 
-func (e *endpoint) Url() string {
+func (e *Endpoint) Url() string {
 	return e.domain + e.path
 }
 
@@ -41,12 +42,12 @@ func NewEndpointRepository() EndpointRepository {
 	return &endpointRepository{db}
 }
 
-func (r *endpointRepository) GetAll() ([]*endpoint, error) {
+func (r *endpointRepository) GetAll() ([]*Endpoint, error) {
 	rows, err := r.db.Query("SELECT * FROM metric_endpoints WHERE status = ?", string(EndpointStatus_ACTIVE))
 	if err != nil {
 		return nil, err
 	}
-	var endpoints []*endpoint
+	var endpoints []*Endpoint
 
 	for rows.Next() {
 		var (
@@ -61,16 +62,16 @@ func (r *endpointRepository) GetAll() ([]*endpoint, error) {
 			return nil, err
 		}
 
-		e := &endpoint{id, domain, path, EndpointStatus(status)}
+		e := &Endpoint{id, domain, path, EndpointStatus(status)}
 		endpoints = append(endpoints, e)
 	}
 	return endpoints, nil
 }
 
-func (r *endpointRepository) Create(e *endpoint) error {
+func (r *endpointRepository) Create(e *Endpoint) error {
 	return nil
 }
 
-func (r *endpointRepository) Update(e *endpoint) error {
+func (r *endpointRepository) Update(e *Endpoint) error {
 	return nil
 }

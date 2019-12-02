@@ -23,13 +23,13 @@ type Collector struct {
 	repository EndpointRepository
 	parser     *parser
 	c          *http.Client
-	input      chan *endpoint
+	input      chan *Endpoint
 	output     chan *Message
 	quit       chan os.Signal
 }
 
 func NewCollector(r EndpointRepository, o chan *Message, q chan os.Signal) *Collector {
-	ch := make(chan *endpoint, 1)
+	ch := make(chan *Endpoint, 1)
 	return &Collector{
 		repository: r,
 		parser:     newParser(o),
@@ -40,7 +40,7 @@ func NewCollector(r EndpointRepository, o chan *Message, q chan os.Signal) *Coll
 	}
 }
 
-func (c *Collector) RegisterEndpoint(e *endpoint) {
+func (c *Collector) RegisterEndpoint(e *Endpoint) {
 }
 
 func (c *Collector) Run() {
@@ -87,7 +87,7 @@ func (c *Collector) collect(ctx context.Context) {
 	}
 }
 
-func (c *Collector) makeRequest(ctx context.Context, e *endpoint) error {
+func (c *Collector) makeRequest(ctx context.Context, e *Endpoint) error {
 	log.Printf("Making request to endpoint %v", e)
 	req, err := http.NewRequest("GET", e.Url(), nil)
 
