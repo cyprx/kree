@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"strconv"
 	"strings"
+	"time"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -14,6 +15,7 @@ import (
 
 type Metric struct {
 	Name   string      `json:"name"`
+	Ts     string      `json:"ts"`
 	Type   string      `json:"type"`
 	Labels string      `json:"labels"`
 	Value  interface{} `json:"value"`
@@ -37,10 +39,13 @@ func (p *parser) parseTextToMessage(line io.Reader) error {
 		f := prom2json.NewFamily(mf)
 
 		// TODO: handle type histogram
-		if f.Type == dto.MetricType_HISTOGRAM.String() {
+		if f.Type == dto.MetricType_HISTOGRAM.String() || f.Type == dto.MetricType_SUMMARY.String() {
 			continue
 		}
-		return p.parseMetric(f)
+		err = p.parseMetric(f)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -59,9 +64,14 @@ func (p *parser) parseMetric(f *prom2json.Family) error {
 			labels = append(labels, fmt.Sprintf("%v=%v", k, v))
 		}
 		metric.Labels = strings.Join(labels, ",")
+		metric.Value = p2jMetric.Value
+		metric.Ts = p2jMetric.TimestampMs
+		if metric.Ts == "" {
+			metric.Ts = strconv.FormatInt(time.Now().Unix(), 10)
+		}
 		msg, err := convertMetricToMessage(metric)
 		if err != nil {
-			log.Printf("error while parsing message: %v", err)
+			return err
 		}
 		p.ch <- msg
 	}

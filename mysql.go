@@ -2,19 +2,18 @@ package kree
 
 import (
 	"log"
-	"os"
 
 	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	DB *sql.DB
-
-	MYSQL_CONNECTION_URI = os.Getenv("MYSQL_CONNECTION_URI")
 )
 
-func InitDB() {
-	db, err := sql.Open("mysql", MYSQL_CONNECTION_URI)
+func InitDB(uri string) {
+	db, err := sql.Open("mysql", uri)
 	if err != nil {
 		log.Fatal(err)
 	}

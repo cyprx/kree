@@ -28,6 +28,7 @@ func NewPublisher(topic string, brokers []string, i chan *Message, q chan os.Sig
 }
 
 func (p *publisher) Publish() {
+	log.Println("Starting publisher...")
 	for {
 		select {
 		case m := <-p.input:

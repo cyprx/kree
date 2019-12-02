@@ -41,8 +41,9 @@ func (c *Collector) RegisterEndpoint(e *endpoint) {
 }
 
 func (c *Collector) Run() {
+	log.Println("Starting collector...")
 	ctx := context.Background()
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(60 * time.Second)
 
 	go func() {
 		for {
@@ -51,6 +52,9 @@ func (c *Collector) Run() {
 				endpoints, err := c.repository.GetAll()
 				if err != nil {
 					log.Fatalf("could not get endpoint %v", err)
+				}
+				if endpoints == nil {
+					log.Println("no endpoints found")
 				}
 				for _, e := range endpoints {
 					c.input <- e
@@ -69,7 +73,10 @@ func (c *Collector) collect(ctx context.Context) {
 	for {
 		select {
 		case e := <-c.input:
-			c.makeRequest(ctx, e)
+			err := c.makeRequest(ctx, e)
+			if err != nil {
+				log.Fatalf("Could not collect metrics from %v, err: %v", e, err)
+			}
 		case <-c.quit:
 			break
 		}
@@ -77,6 +84,7 @@ func (c *Collector) collect(ctx context.Context) {
 }
 
 func (c *Collector) makeRequest(ctx context.Context, e *endpoint) error {
+	log.Printf("Making request to endpoint %v", e)
 	req, err := http.NewRequest("GET", e.Url(), nil)
 
 	if err != nil {
