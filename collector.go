@@ -9,12 +9,15 @@ import (
 	"time"
 )
 
+// Message is used to communicate between Collector and Publisher
 type Message struct {
 	Topic string
 	Key   []byte
 	Value []byte
 }
 
+// Collector is for periodically reading from metric endpoints
+// and send message to Publisher through its channel
 type Collector struct {
 	topic      string
 	repository EndpointRepository
@@ -51,16 +54,17 @@ func (c *Collector) Run() {
 			case <-ticker.C:
 				endpoints, err := c.repository.GetAll()
 				if err != nil {
-					log.Fatalf("could not get endpoint %v", err)
+					log.Fatalf("Could not get endpoint %v", err)
 				}
 				if endpoints == nil {
-					log.Println("no endpoints found")
+					log.Println("No endpoints found")
 				}
 				for _, e := range endpoints {
 					c.input <- e
 				}
 			case <-c.quit:
 				ticker.Stop()
+				log.Println("Received shutting down request")
 				close(c.input)
 			}
 		}

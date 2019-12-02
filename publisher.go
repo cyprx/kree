@@ -7,6 +7,7 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+// Publisher will listen to message channel and publish any messages it received
 type Publisher interface {
 	Publish()
 }
@@ -18,6 +19,7 @@ type publisher struct {
 	quit  chan os.Signal
 }
 
+// NewPublisher return publisher implementation object
 func NewPublisher(topic string, brokers []string, i chan *Message, q chan os.Signal) Publisher {
 	ap, err := sarama.NewAsyncProducer(brokers, nil)
 	if err != nil {
@@ -27,6 +29,7 @@ func NewPublisher(topic string, brokers []string, i chan *Message, q chan os.Sig
 	return &publisher{topic, ap, i, q}
 }
 
+// Publish start listening to input channel for new messages
 func (p *publisher) Publish() {
 	log.Println("Starting publisher...")
 	for {
